@@ -7,7 +7,9 @@ function App() {
       ? JSON.parse(localStorage.getItem("product"))
       : []
   );
-  const [count, setCount] = useState(1);
+  useEffect(() => {
+    localStorage.setItem("product", JSON.stringify(basket));
+  }, [basket]);
   useEffect(() => {
     axios
       .get("https://northwind.vercel.app/api/products")
@@ -17,45 +19,81 @@ function App() {
     const elemIndex = basket.findIndex((y) => y.id === item.id);
     if (elemIndex !== -1) {
       const newBasket = [...basket];
-      // newBasket[elemIndex].count++;
-      setCount(count + 1);
+      newBasket[elemIndex].count++;
       setBasket(newBasket);
     } else {
-      // setBasket([...basket, { ...item, count: 1 }]);
-      setBasket([...basket, { ...item }]);
+      setBasket([...basket, { ...item, count: 1 }]);
     }
   }
-  // function deleteZero() {
-  //   if(setCount((count)=>count<1)){
-  //     removeFromBasket(id)
-  //   }
-  // //   const delArr=[...basket]
-  // //   if (delArr. < 0) {
-  // //     removeFromBasket(id);
-  // //   }
-  // }
+
+  function removeIfZero(item) {
+    if (item.count === 1) {
+      setBasket(basket.filter((x) => x.id !== item.id));
+    }
+
+    setBasket(updatedBasket.filter((basketItem) => basketItem.count > 0));
+  }
+
   function removeFromBasket(id) {
     setBasket(basket.filter((x) => x.id !== id));
   }
 
   return (
     <div>
-      <div style={{ border: "2px solid black", width: "100%" }}>
-        <h2 style={{ textAlign: "center" }}>Basket</h2>
-        <div>
+      <div
+        style={{
+          listStyle: "none",
+          maxWidth: "1350px",
+          padding: "30px 10px",
+          borderRadius: "10px",
+          backgroundColor: "aliceblue",
+        }}
+      >
+        <h2 style={{ textAlign: "center", color: "#212157" }}>Basket</h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(5,1fr)",
+          }}
+        >
           {basket.map((item) => (
             <ul key={item.id}>
               <li>ID :{item.id}</li>
               <li>Name :{item.name}</li>
               <li>
-                Count : <button onClick={() => setCount(count - 1)}>-</button>
-                {/* <span>{item.count}</span> */}
-                <span>{count}</span>
-                <button onClick={() => setCount(count + 1)}>+</button>
+                Count :{" "}
+                <button
+                  onClick={() => {
+                    setBasket((prevBasket) =>
+                      prevBasket.map((basketItem) =>
+                        basketItem.id === item.id
+                          ? { ...basketItem, count: basketItem.count - 1 }
+                          : basketItem
+                      )
+                    );
+                    removeIfZero(item);
+                  }}
+                >
+                  -
+                </button>
+                <span>{item.count}</span>
+                <button
+                  onClick={() => {
+                    setBasket((prevBasket) =>
+                      prevBasket.map((basketItem) =>
+                        basketItem.id === item.id
+                          ? { ...basketItem, count: basketItem.count + 1 }
+                          : basketItem
+                      )
+                    );
+                  }}
+                >
+                  +
+                </button>
               </li>
               <li>
                 <button onClick={() => removeFromBasket(item.id)}>
-                  REMOVE
+                  Remove
                 </button>
               </li>
             </ul>
@@ -67,17 +105,16 @@ function App() {
           display: "grid",
           gridTemplateColumns: "repeat(7,1fr)",
           columnGap: "30px",
-          margin: "50px 30px",
         }}
       >
         {products.map((x) => (
           <ul
             style={{
-              border: "1px solid black",
               listStyle: "none",
               width: "150px",
               padding: "30px 10px",
               borderRadius: "10px",
+              backgroundColor: "aliceblue",
             }}
             key={x.id}
           >
